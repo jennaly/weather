@@ -81,9 +81,10 @@ function App() {
   };
 
   const addToFavorite = () => {
+    const currentCity = response.currentWeather.location.city.toLowerCase();
     // handle duplicates
-    if (!favorite.includes(response.city)) {
-      let newFavoriteList = [...favorite, response.city];
+    if (!favorite.includes(currentCity)) {
+      let newFavoriteList = [...favorite, currentCity];
       setFavorite(newFavoriteList);
 
       localStorage.setItem("favoriteCities", JSON.stringify(newFavoriteList));
@@ -115,14 +116,13 @@ function App() {
           {showWelcome && <Welcome />}
 
           {response.currentWeather && (
-            <CurrentWeather data={response.currentWeather} />
+            <CurrentWeather
+              data={response.currentWeather}
+              addToFavorite={addToFavorite}
+            />
           )}
 
           {response.forecast && <Forecast data={response.forecast} />}
-
-          {response.city && (
-            <button onClick={addToFavorite}>Add this city</button>
-          )}
         </section>
       </div>
     </>

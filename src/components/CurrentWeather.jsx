@@ -1,7 +1,7 @@
 import React from "react";
 import { getIconLink } from "../utils";
 
-const CurrentWeather = ({ data }) => {
+const CurrentWeather = ({ data, addToFavorite }) => {
   const iconLink = getIconLink(data.icon);
   return (
     <div className="flex flex-col items-center">
@@ -12,7 +12,9 @@ const CurrentWeather = ({ data }) => {
       />
       <span className="text-4xl">{Math.round(data.temp)} &#8457;</span>
       <span className="text-2xl mt-2">
-        {data.location.city}, {data.location.state}, {data.location.country}
+        {`${data.location.city}, ${
+          data.location.state ? data.location.state + "," : ""
+        } ${data.location.country}`}
       </span>
 
       <div className="flex w-full justify-around mt-8">
@@ -62,6 +64,10 @@ const CurrentWeather = ({ data }) => {
           </div>
         </div>
       </div>
+
+      <button onClick={addToFavorite} className="mt-4 ">
+        Add this city
+      </button>
     </div>
   );
 };
