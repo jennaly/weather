@@ -6,6 +6,7 @@ import { processWeatherData } from "./utils";
 import Welcome from "./components/Welcome";
 import CurrentWeather from "./components/CurrentWeather";
 import Favorite from "./components/Favorite";
+import Forecast from "./components/Forecast";
 
 function App() {
   const [response, setResponse] = useState({
@@ -56,6 +57,7 @@ function App() {
           state: geoInfoData.state,
           country: geoInfoData.country,
         },
+        description: currentWeatherReq.data.weather[0].description,
         temp: currentWeatherReq.data.main.temp,
         humidity: currentWeatherReq.data.main.humidity,
         wind: currentWeatherReq.data.wind.speed,
@@ -68,7 +70,6 @@ function App() {
       };
 
       setShowWelcome(false);
-      setShowFavorite(false);
       setResponse(searchResults);
     } catch (error) {
       setError(
@@ -99,29 +100,30 @@ function App() {
 
   return (
     <>
-      <div className="container mx-auto w-full h-screen max-h-screen flex flex-col justify-between p-8">
-        <SearchForm
-          onFormSubmit={getCityData}
-          isLoading={isLoading}
-          error={error}
-        />
+      <div className="container mx-auto w-full h-screen max-h-screen flex flex-col p-8">
+        <section>
+          <SearchForm
+            onFormSubmit={getCityData}
+            isLoading={isLoading}
+            error={error}
+          />
 
-        {showWelcome && <Welcome />}
+          <Favorite data={favorite} getCityData={getCityData} />
+        </section>
 
-        {showFavorite && <Favorite data={favorite} getCityData={getCityData} />}
+        <section className="h-full flex flex-col justify-around">
+          {showWelcome && <Welcome />}
 
-        {response.currentWeather && (
-          <CurrentWeather data={response.currentWeather} />
-        )}
-        {response.forecast && (
-          <p className="bg-blue-100 p-4 rounded">
-            Forecast:
-            {JSON.stringify(response.forecast)}
-          </p>
-        )}
-        {response.city && (
-          <button onClick={addToFavorite}>Add this city</button>
-        )}
+          {response.currentWeather && (
+            <CurrentWeather data={response.currentWeather} />
+          )}
+
+          {response.forecast && <Forecast data={response.forecast} />}
+
+          {response.city && (
+            <button onClick={addToFavorite}>Add this city</button>
+          )}
+        </section>
       </div>
     </>
   );

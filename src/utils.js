@@ -1,30 +1,44 @@
-export const dateFormatter = (date) => {
-  const dateFormatOptions = { dateStyle: "medium" };
-
-  const formattedDate = new Intl.DateTimeFormat(
-    "en-US",
-    dateFormatOptions
-  ).format(date);
-
-  return formattedDate;
+export const getIconLink = (iconCode) => {
+  return `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
 };
 
-const groupDataByDate = (array) => {
+const processWeatherByDay = (array) => {
   const output = {};
 
-  // need to convert date from api (UTC) to local time
-  // format local time to MM-DD-YY
   for (const entry of array) {
-    const dateText = `${entry["dt_txt"]} UTC`;
+    // Get the entry date in UTC for comparison with current UTC date
+    const entryDate = new Date(entry["dt_txt"] + " UTC");
+    const currentDate = new Date();
 
-    const localDate = dateFormatter(new Date(Date.parse(dateText)));
+    // Compare dates in UTC
+    const entryDateString = entryDate.toISOString().slice(0, 10);
+    const currentDateString = currentDate.toISOString().slice(0, 10);
 
-    if (!output[localDate]) {
-      output[localDate] = { temperature: [], weather: [] };
+    // Skip if it's today
+    if (entryDateString === currentDateString) {
+      continue;
     }
 
-    output[localDate]["temperature"].push(entry["main"]["temp"]);
-    output[localDate]["weather"].push(entry["weather"][0]["description"]);
+    const daysOfTheWeek = {
+      0: "Sun",
+      1: "Mon",
+      2: "Tues",
+      3: "Wed",
+      4: "Thurs",
+      5: "Fri",
+      6: "Sat",
+    };
+
+    // Convert UTC time to local time for display
+    const localDate = new Date(entry["dt_txt"]);
+    const day = daysOfTheWeek[localDate.getDay()];
+
+    if (!output[day]) {
+      output[day] = { temperature: [], weather: [] };
+    }
+
+    output[day]["temperature"].push(entry["main"]["temp"]);
+    output[day]["weather"].push(entry["weather"][0]["description"]);
   }
 
   return output;
@@ -32,7 +46,7 @@ const groupDataByDate = (array) => {
 
 const getAvgTemp = (temperaturesArr) => {
   const sum = temperaturesArr.reduce((current, acc) => current + acc, 0);
-  const avg = Number((sum / temperaturesArr.length).toFixed(2));
+  const avg = Math.round(sum / temperaturesArr.length);
 
   return avg;
 };
@@ -61,24 +75,37 @@ const getCommonWeather = (weatherArr) => {
 export const weatherIcons = {
   "clear sky": "01d",
   "few clouds": "02d",
+  "overcast clouds": "04d",
   "scattered clouds": "03d",
   "broken clouds": "04d",
   "shower rain": "09d",
+  "light rain": "10n",
   rain: "10d",
   thunderstorm: "11d",
   snow: "13d",
   mist: "50d",
+  smoke: "50d",
+  haze: "50d",
+  sand: "50d",
+  fog: "50d",
+  dust: "50d",
+  "volcanic ash": "50d",
+  squalls: "50d",
+  tornado: "50d",
 };
 
 export const processWeatherData = (data) => {
-  const groupedData = groupDataByDate(data);
-  const processedData = {};
+  const groupedData = processWeatherByDay(data);
+  const processedData = [];
 
   for (const date in groupedData) {
-    processedData[date] = {
+    const day = {
+      date: date,
       averageTemp: getAvgTemp(groupedData[date]["temperature"]),
       commonWeather: getCommonWeather(groupedData[date]["weather"]),
+      icon: weatherIcons[getCommonWeather(groupedData[date]["weather"])],
     };
+    processedData.push(day);
   }
 
   return processedData;
